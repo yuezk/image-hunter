@@ -1,0 +1,11 @@
+{
+  "name": "image_hunter",
+  "version": "0.0.0",
+  "description": "抓取淘宝宝贝图片",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
