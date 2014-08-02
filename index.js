@@ -1,3 +1,5 @@
+#!/usr/local/bin/node
+
 var http = require('http');
 var fs = require('fs');
 var os = require('os');
@@ -75,10 +77,15 @@ function featchPage() {
                 var num = '';
                 [].slice.call(attrItems).forEach(getNum);
 
+                //分类图片
+                var cateItems = document.querySelectorAll('.J_TSaleProp.tb-img li');
+                var cateImages = [].slice.call(cateItems).map(getCateImages);
+
                 return {
                     num: num,
                     itemImages: imgLinks,
-                    descUrl: TShop.cfg().api.descUrl
+                    descUrl: TShop.cfg().api.descUrl,
+                    cateImages: cateImages
                 };
 
                 function getLink(image) {
@@ -92,6 +99,16 @@ function featchPage() {
                         return false; 
                     }
                 }
+
+                function getCateImages(cateItem) {
+                    var title = cateItem.getAttribute('title');
+                    var url = cateItem.querySelector('a').style.backgroundImage.replace(/url\((.*\.jpg)_.*?\)/gi, '$1');
+
+                    return {
+                        title: title,
+                        url: url
+                    };
+                }
                 
             }, function (result) {
                 http.get(result.descUrl, function (res) {
@@ -100,13 +117,16 @@ function featchPage() {
                     res.on('data', function (chunk) {
                         data += chunk;
                     });
+
                     res.on('end', function () {
                         var detailImages = data.match(imgReg);
+
                         openPage(urls.shift()); //递归调用
-                        featchImage({
+                        fetchImage({
                             num: result.num,
                             itemImages: result.itemImages,
-                            detailImages: detailImages
+                            detailImages: detailImages,
+                            cateImages: result.cateImages,
                         });
                     });
                 });
@@ -115,7 +135,7 @@ function featchPage() {
     }
 }
 
-function featchImage(opts) {
+function fetchImage(opts) {
     var prefix = 'images/' + opts.num + '/';
 
     mkdirp(prefix, function (err) {
@@ -131,6 +151,10 @@ function featchImage(opts) {
         opts.detailImages.forEach(function (src, i) {
             var name = prefix + 'x' + (i + 1) + path.extname(url.parse(src).pathname)
             saveImage(src, name);
+        });
+        opts.cateImages.forEach(function (cateImage, i) {
+            var name = prefix + cateImage.title + path.extname(url.parse(cateImage.url).pathname);
+            saveImage(cateImage.url, name);
         });
     });
 }

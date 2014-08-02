@@ -6,7 +6,7 @@ Tmall image hunter
 Usage
 =====
 
-```shell
+``` shell
 node index.js -f urls.txt
 ```
 
