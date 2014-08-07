@@ -65,7 +65,7 @@ function featchPage() {
 
         page.open(pageUrl, function (status) {
             if (status !== 'success') {
-                console.log(status);
+                console.log('status: %s\n pageUrl: %s', status, pageUrl);
                 openPage(urls.shift());
             }
             
@@ -153,13 +153,18 @@ function fetchImage(opts) {
             saveImage(src, name);
         });
         opts.cateImages.forEach(function (cateImage, i) {
-            var name = prefix + cateImage.title + path.extname(url.parse(cateImage.url).pathname);
+            var name = prefix + cateImage.title.replace('\\', '\\\\').replace('/', ':') + path.extname(url.parse(cateImage.url).pathname);
+            console.log('cate image name %s', name);
             saveImage(cateImage.url, name);
         });
     });
 }
 
 function saveImage(src, name) {
+    if (!/^http/.test(src)) {
+        return; 
+    }
+
     http.get(src, function (res) {
         var file = fs.createWriteStream(name); 
         file.on('close', function () {
@@ -168,7 +173,7 @@ function saveImage(src, name) {
 
         res.pipe(file);
     }).on('error', function (err) {
-        console.log('ERROR! ' + name + ' featch failed !');
+        console.log('ERROR! %s:%s fetch failed !', name, src);
         console.log(err);
     });
 }
