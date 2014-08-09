@@ -153,7 +153,7 @@ function fetchImage(opts) {
             saveImage(src, name);
         });
         opts.cateImages.forEach(function (cateImage, i) {
-            var name = prefix + cateImage.title.replace('\\', '\\\\').replace('/', ':') + path.extname(url.parse(cateImage.url).pathname);
+            var name = prefix + cateImage.title.replace('\\', ' ').replace('/', ' ') + path.extname(url.parse(cateImage.url).pathname);
             console.log('cate image name %s', name);
             saveImage(cateImage.url, name);
         });
