@@ -10,7 +10,7 @@ var phantom = require('phantom');
 
 //var pageUrl = 'http://detail.tmall.com/item.htm?id=38757143668';
 
-var imgReg = /http:\/\/img.+?\.(jpeg|jpg|gif|png)/gi;
+var imgReg = /http:\/\/i.+?\.(jpeg|jpg|gif|png)/gi;
 var urls = [];
 
 var args = process.argv.slice(2);
@@ -70,32 +70,35 @@ function featchPage() {
             }
             
             page.evaluate(function () {
-                var img = document.querySelectorAll('#J_UlThumb img');
+                var img = document.querySelectorAll('#dt-tab img, .list-leading img');
                 var imgLinks = [].slice.call(img).map(getLink);
 
-                var attrItems = document.querySelectorAll('#J_AttrUL li');
+                var attrItems = document.querySelectorAll('#mod-detail-attributes .de-feature');
                 var num = '';
                 [].slice.call(attrItems).forEach(getNum);
 
                 //分类图片
-                var cateItems = document.querySelectorAll('.J_TSaleProp.tb-img li');
-                var cateImages = [].slice.call(cateItems).map(getCateImages);
+                //var cateItems = document.querySelectorAll('.J_TSaleProp.tb-img li');
+                //var cateImages = [].slice.call(cateItems).map(getCateImages);
+                
+                var descContainer = document.querySelector('#desc-lazyload-container');
+                var descUrl = descContainer.getAttribute('data-tfs-url');
 
                 return {
                     num: num,
                     itemImages: imgLinks,
-                    descUrl: TShop.cfg().api.descUrl,
-                    cateImages: cateImages
+                    descUrl: descUrl
+                    //cateImages: cateImages
                 };
 
                 function getLink(image) {
-                    return image.src.replace(/\.jpg_.*/, '.jpg'); //换成大图
+                    return image.src.replace(/\.32x32/, ''); //换成大图
                 }
 
                 function getNum(item) {
                     var text = item.textContent;
                     if (text.indexOf('货号') >= 0) {
-                        num = item.getAttribute('title').trim();
+                        num = item.nextElementSibling.textContent;
                         return false; 
                     }
                 }
@@ -126,7 +129,7 @@ function featchPage() {
                             num: result.num,
                             itemImages: result.itemImages,
                             detailImages: detailImages,
-                            cateImages: result.cateImages,
+                            cateImages: []
                         });
                     });
                 });
@@ -165,10 +168,12 @@ function saveImage(src, name) {
         return; 
     }
 
+    src = src + '?t=' + Math.random();
+
     http.get(src, function (res) {
         var file = fs.createWriteStream(name); 
         file.on('close', function () {
-            console.log('OK! ' + name + ' saved !');
+            console.log('OK! ' + name + ' saved !', src);
         });
 
         res.pipe(file);
